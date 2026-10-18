@@ -1,6 +1,7 @@
 # recycle-tray-native
 
-## Full Github Copilot clone. No human interaction yet
+## Mostly GitHub Copilot clone
+
 
 Native Win32 port of isc30/recycle-tray: a small tray application that monitors the Windows Recycle Bin and provides quick actions (open, empty). This version is written in native C++ and produces a single EXE — no .NET runtime required.
 
@@ -21,7 +22,7 @@ Build (Visual Studio / Developer Command Prompt)
 3) Build with:
 
 ```
-cl /EHsc /std:c++17 RecycleTray.cpp /link user32.lib shell32.lib gdi32.lib gdiplus.lib ole32.lib
+cl /EHsc /std:c++17 RecycleTray.cpp /link user32.lib shell32.lib gdi32.lib gdiplus.lib ole32.lib advapi32.lib
 ```
 
 The produced RecycleTray.exe is a native Windows executable and does not require the .NET runtime.
