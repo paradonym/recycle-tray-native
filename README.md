@@ -6,9 +6,13 @@ GH copilot seems to have stolen isc30/recycle-tray instead of accurately forking
 - I had to do some minor fixes with the AI - like empty traybar icon and so on
 this is why RecycleTray.cpp isn't the logic of isc30/recycle-tray
 - Then I used an Innosetup install script to bake it into an actual installer so we can talk about an actual release to do in the future.
+- low priviledge userspace installation, because there is no necessity to act as admin for all program features
 
 Reason this has been done is that all similar projects, including isc30/recycle-tray seem to have stopped at around 2018, which is eight years ago...
-This will be abandoned too, but is made in 2026 with AI on a learning base from god knows when....
+This will be abandoned too sooner or later, but is made in 2026 with AI on training data from god knows when....
+
+## human / AI Todos
+- SmartScreen signing
 
 ## AI Text: producer GitHub Copilot:
 Native Win32 port of isc30/recycle-tray: a small tray application that monitors the Windows Recycle Bin and provides quick actions (open, empty). This version is written in native C++ and produces a single EXE — no .NET runtime required.
