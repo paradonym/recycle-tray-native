@@ -27,13 +27,27 @@ const UINT ID_MENU_EXIT = 2003;
 
 HICON LoadIconFromPng(const WCHAR* filename)
 {
-    Bitmap* bmp = Bitmap::FromFile(filename);
-    if (!bmp) return NULL;
+    Bitmap* src = Bitmap::FromFile(filename);
+    if (!src) return NULL;
+    if (src->GetLastStatus() != Ok) {
+        delete src;
+        return NULL;
+    }
+    // create a bitmap sized for the system small icon to avoid scaling issues
+    int cx = GetSystemMetrics(SM_CXSMICON);
+    int cy = GetSystemMetrics(SM_CYSMICON);
+    Bitmap* bmp = new Bitmap(cx, cy, PixelFormat32bppARGB);
+    Graphics g(bmp);
+    g.SetCompositingMode(CompositingModeSourceOver);
+    g.SetInterpolationMode(InterpolationModeHighQualityBicubic);
+    g.Clear(Color(0, 0, 0, 0));
+    g.DrawImage(src, Rect(0, 0, cx, cy), 0, 0, src->GetWidth(), src->GetHeight(), UnitPixel);
     HICON hIcon = NULL;
     if (bmp->GetHICON(&hIcon) != Ok) {
         hIcon = NULL;
     }
     delete bmp;
+    delete src;
     return hIcon;
 }
 
@@ -109,7 +123,6 @@ void OpenRecycleBinInExplorer()
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-    static HICON hIcon = NULL;
     switch (msg)
     {
     case WM_CREATE:
@@ -120,13 +133,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_TIMER:
         if (wParam == ID_TRAY_TIMER) {
             ULONGLONG items = QueryRecycleBinItemCount();
-            if (items > 0) {
-                // Make sure icon is visible
-                UpdateTrayIcon(hwnd, hIcon, true, items);
-            } else {
-                // Hide icon by setting visible false
-                UpdateTrayIcon(hwnd, hIcon, false, items);
-            }
+            HICON hIcon = (HICON)GetPropW(hwnd, L"TrayIcon");
+            UpdateTrayIcon(hwnd, hIcon, items > 0, items);
         }
         return 0;
 
@@ -157,12 +165,34 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             // immediately update
             {
                 ULONGLONG items = QueryRecycleBinItemCount();
+                HICON hIcon = (HICON)GetPropW(hwnd, L"TrayIcon");
                 UpdateTrayIcon(hwnd, hIcon, items > 0, items);
             }
             break;
         case ID_MENU_EXIT:
             PostQuitMessage(0);
             break;
+        }
+        return 0;
+
+    case WM_SETTINGCHANGE:
+    case WM_THEMECHANGED:
+        // theme or settings changed: reload icon according to current theme
+        {
+            bool light = IsLightTheme();
+            const WCHAR* iconFile = light ? L"light.png" : L"dark.png";
+            HICON newIcon = LoadIconFromPng(iconFile);
+            if (!newIcon) {
+                newIcon = reinterpret_cast<HICON>(LoadIconW(NULL, reinterpret_cast<LPCWSTR>(IDI_APPLICATION)));
+            }
+            // replace stored icon and destroy previous
+            HANDLE prev = (HANDLE)GetPropW(hwnd, L"TrayIcon");
+            SetPropW(hwnd, L"TrayIcon", (HANDLE)newIcon);
+            if (prev) DestroyIcon((HICON)prev);
+
+            // refresh tray icon immediately
+            ULONGLONG items = QueryRecycleBinItemCount();
+            UpdateTrayIcon(hwnd, newIcon, items > 0, items);
         }
         return 0;
 
@@ -176,7 +206,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             nid.uID = 1;
             Shell_NotifyIconW(NIM_DELETE, &nid);
         }
-        if (hIcon) DestroyIcon(hIcon);
+        // remove and destroy stored icon
+        {
+            HANDLE h = RemovePropW(hwnd, L"TrayIcon");
+            if (h) DestroyIcon((HICON)h);
+        }
         PostQuitMessage(0);
         return 0;
     }
