@@ -15,6 +15,7 @@
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "gdi32.lib")
 #pragma comment(lib, "ole32.lib")
+#pragma comment(lib, "advapi32.lib")
 
 using namespace Gdiplus;
 
@@ -194,8 +195,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int)
     const WCHAR* iconFile = light ? L"light.png" : L"dark.png";
     HICON hIcon = LoadIconFromPng(iconFile);
     if (!hIcon) {
-        // fallback to system tray icon
-        hIcon = LoadIconW(NULL, IDI_APPLICATION);
+        // fallback to system tray icon (cast MAKEINTRESOURCE to wide pointer)
+        hIcon = LoadIconW(NULL, reinterpret_cast<LPCWSTR>(IDI_APPLICATION));
     }
 
     // Register window class
@@ -256,7 +257,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int)
     }
 
     // cleanup
-    RemoveProp(hwnd, L"TrayIcon");
+    RemovePropW(hwnd, L"TrayIcon");
     if (hIcon) DestroyIcon(hIcon);
     GdiplusShutdown(gdiToken);
     return (int)msg.wParam;
