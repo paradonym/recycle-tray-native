@@ -2,24 +2,15 @@
 
 ## Mostly GitHub Copilot / Claude Code / AI Vibe Code clone
 
+## human / AI Todos
+- SmartScreen signing
+- cleanmgr.exe context menu option
+- msix packaging
+- Microsoft Windows Store publication
 
-Native Win32 port of isc30/recycle-tray: a small tray application that monitors the Windows Recycle Bin and provides quick actions (open, empty). This version is written in native C++ and produces a single EXE — no .NET runtime required.
+once was [isc30/recycle-tray](https://github.com/isc30/recycle-tray) but in C++
 
-This repository contains:
-- RecycleTray.cpp — native Win32/C++ implementation (uses Shell API + GDI+ to load PNG icons)
-
-Notes / origin
-- Original project: https://github.com/isc30/recycle-tray
-  I ported the behavior from the original C#/.NET Core 3.1 WinForms app to a native Win32 application.
-- Icons (light.png / dark.png) are not included here. You can reuse the original icons from the upstream repo (links below) or place your own icons next to the EXE.
-  - Light icon: https://raw.githubusercontent.com/isc30/recycle-tray/master/src/light.png
-  - Dark icon:  https://raw.githubusercontent.com/isc30/recycle-tray/master/src/dark.png
-
-Build (Visual Studio / Developer Command Prompt)
-
-1) Open "Developer Command Prompt for VS" or use an MSVC environment.
-2) Put RecycleTray.cpp and the desired icons (light.png / dark.png) in the same folder.
-3) Build with:
+Build with:
 
 ```
 cl /EHsc /std:c++17 RecycleTray.cpp /link resource.res user32.lib shell32.lib gdi32.lib gdiplus.lib ole32.lib advapi32.lib
